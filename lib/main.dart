@@ -52,6 +52,9 @@ class _SandboxGameState extends State<SandboxGame> {
   List<StarTrail> activeStars = [];
   List<GrowingSquare> activeSquares = [];
 
+  Offset? _lastDragPosition;
+  DateTime? _lastDragTime;
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +89,25 @@ class _SandboxGameState extends State<SandboxGame> {
     activeSquares.add(square);
   }
 
+  void _handleTap(Offset position) {
+    if (selectedTool == ToolType.lightning) {
+      _spawnLightning(position);
+    } else if (selectedTool == ToolType.curling) {
+      _spawnStarTrail(position);
+    } else if (selectedTool == ToolType.growing) {
+      _spawnSquare(position);
+    }
+  }
+
+  void _handleDrag(Offset position) {
+    final now = DateTime.now();
+    if (_lastDragTime == null ||
+        now.difference(_lastDragTime!) >= const Duration(milliseconds: 200)) {
+      _handleTap(position);
+      _lastDragTime = now;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,14 +118,21 @@ class _SandboxGameState extends State<SandboxGame> {
           Expanded(
             child: GestureDetector(
               onTapDown: (details) {
-                Offset tapPos = details.localPosition;
-                if (selectedTool == ToolType.lightning) {
-                  _spawnLightning(tapPos);
-                } else if (selectedTool == ToolType.curling) {
-                  _spawnStarTrail(tapPos);
-                } else if (selectedTool == ToolType.growing) {
-                  _spawnSquare(tapPos);
-                }
+                _handleTap(details.localPosition);
+              },
+              onPanStart: (details) {
+                _lastDragPosition = details.localPosition;
+                _lastDragTime = DateTime.now().subtract(
+                  const Duration(milliseconds: 101),
+                );
+                _handleDrag(details.localPosition);
+              },
+              onPanUpdate: (details) {
+                _handleDrag(details.localPosition);
+              },
+              onPanEnd: (_) {
+                _lastDragPosition = null;
+                _lastDragTime = null;
               },
               child: Container(
                 color: Colors.black,
