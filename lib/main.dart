@@ -285,7 +285,8 @@ class LightningBolt {
   static final _rand = Random();
 
   Offset _randomDir() {
-    final angle = _rand.nextDouble() * 2 * pi;
+    // Always point upwards with a slight random variance
+    final angle = -pi / 2 + (_rand.nextDouble() - 0.5) * (pi / 12);
     return Offset(cos(angle), sin(angle));
   }
 
@@ -373,7 +374,7 @@ class ComboPainter extends CustomPainter {
         style: TextStyle(
           fontSize: 16,
           fontFamily: icon.fontFamily,
-          color: Colors.orange,
+          color: f.color,
           package: icon.fontPackage,
         ),
       );
@@ -524,21 +525,19 @@ class Splapie {
       return;
     }
 
-    if (foodList.isEmpty) return;
+    final matchingFood = foodList.where((f) => f.color == color).toList();
+    if (matchingFood.isEmpty) return;
 
-    // find nearest food
-    foodList.sort(
+    matchingFood.sort(
       (a, b) =>
           (a.origin - origin).distance.compareTo((b.origin - origin).distance),
     );
-    final nearest = foodList.first;
+    final nearest = matchingFood.first;
     final dir = (nearest.origin - origin);
     final distance = dir.distance;
     if (distance < 2) {
-      if (nearest.color == color) {
-        radius = min(radius + 5, 40.0); // Eat and grow
-      }
-      foodList.remove(nearest); // Always remove the food
+      radius = min(radius + 5, 40.0); // Eat and grow
+      foodList.remove(nearest); // Remove only matching food
     } else {
       final move = Offset.fromDirection(dir.direction, min(1.5, distance));
       origin += move;
