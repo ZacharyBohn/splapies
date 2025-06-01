@@ -236,7 +236,7 @@ class _SandboxGameState extends State<SandboxGame> {
       ),
       bottomNavigationBar: Container(
         color: Colors.grey[800],
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const EdgeInsets.only(left: 8, right: 8, top: 16, bottom: 32),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: availableColors.map((color) {
